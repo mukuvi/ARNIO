@@ -1,4 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+import toast from 'react-hot-toast';
 
 const AuthContext = createContext();
 
@@ -15,61 +17,154 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const userData = localStorage.getItem('userData');
-    if (userData) {
-      try {
-        setUser(JSON.parse(userData));
-      } catch (error) {
-        localStorage.removeItem('userData');
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
+        loadUserProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
-    }
-    setLoading(false);
+    });
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        await loadUserProfile(session.user.id);
+      } else if (event === 'SIGNED_OUT') {
+        setUser(null);
+        setLoading(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  const loadUserProfile = async (userId) => {
+    try {
+      const { data: profile, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+
+      if (error) {
+        console.error('Error loading user profile:', error);
+        setLoading(false);
+        return;
+      }
+
+      setUser({
+        id: profile.id,
+        name: profile.name,
+        email: profile.email,
+        profilePic: profile.avatar_url,
+        subscription: profile.subscription,
+        settings: profile.settings,
+        usage: profile.usage_stats,
+        joinDate: profile.created_at
+      });
+    } catch (error) {
+      console.error('Error in loadUserProfile:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const login = async (email, password, name) => {
     setLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const userData = {
-      id: Date.now().toString(),
-      name: name || email.split('@')[0],
-      email,
-      profilePic: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150",
-      subscription: 'free',
-      usage: {
-        documentsUploaded: 0,
-        readingTime: 0,
-        completedBooks: 0
-      },
-      settings: {
-        notifications: true,
-        darkMode: false,
-        language: 'en'
-      },
-      joinDate: new Date().toISOString()
-    };
-    
-    setUser(userData);
-    localStorage.setItem('userData', JSON.stringify(userData));
-    setLoading(false);
+    try {
+      // Try to sign in first
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password
+      });
+
+      if (signInError) {
+        // If sign in fails, try to sign up
+        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: name || email.split('@')[0]
+            }
+          }
+        });
+
+        if (signUpError) {
+          throw signUpError;
+        }
+
+        if (signUpData.user) {
+          toast.success('Account created successfully!');
+          await loadUserProfile(signUpData.user.id);
+        }
+      } else if (signInData.user) {
+        toast.success('Signed in successfully!');
+        await loadUserProfile(signInData.user.id);
+      }
+    } catch (error) {
+      console.error('Auth error:', error);
+      toast.error(error.message || 'Authentication failed');
+      throw error;
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('userData');
+  const logout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      toast.success('Signed out successfully');
+    } catch (error) {
+      console.error('Logout error:', error);
+      toast.error('Error signing out');
+    }
   };
 
-  const updateUser = (updates) => {
-    const updatedUser = { ...user, ...updates };
-    setUser(updatedUser);
-    localStorage.setItem('userData', JSON.stringify(updatedUser));
+  const updateUser = async (updates) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          name: updates.name,
+          subscription: updates.subscription,
+          settings: updates.settings,
+          usage_stats: updates.usage
+        })
+        .eq('id', user.id);
+
+      if (error) throw error;
+
+      setUser(prev => ({ ...prev, ...updates }));
+      toast.success('Profile updated successfully');
+    } catch (error) {
+      console.error('Update user error:', error);
+      toast.error('Failed to update profile');
+    }
   };
 
-  const deleteAccount = () => {
-    setUser(null);
-    localStorage.removeItem('userData');
+  const deleteAccount = async () => {
+    if (!user) return;
+
+    try {
+      // Delete user profile and documents (cascade will handle this)
+      const { error } = await supabase.auth.admin.deleteUser(user.id);
+      
+      if (error) throw error;
+
+      setUser(null);
+      toast.success('Account deleted successfully');
+    } catch (error) {
+      console.error('Delete account error:', error);
+      toast.error('Failed to delete account');
+    }
   };
 
   const value = {
