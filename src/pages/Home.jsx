@@ -6,6 +6,8 @@ import {
   BookOpen, 
   TrendingUp, 
   Users, 
+  Zap, 
+  Shield,
   ArrowRight,
   Play,
   Star,
@@ -35,27 +37,6 @@ const features = [
   }
 ];
 
-const testimonials = [
-  {
-    name: "Sarah Johnson",
-    role: "Graduate Student",
-    content: "ARN.IO has transformed how I approach my research. The AI insights help me understand my reading patterns and improve my comprehension.",
-    avatar: "https://images.pexels.com/photos/774909/pexels-photo-774909.jpeg?w=150"
-  },
-  {
-    name: "Michael Chen",
-    role: "Professional Reader",
-    content: "The personalized recommendations are spot-on. I've discovered amazing books I would never have found otherwise.",
-    avatar: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150"
-  },
-  {
-    name: "Emily Rodriguez",
-    role: "Book Enthusiast",
-    content: "Love the progress tracking features. It's motivating to see my reading streak and comprehension scores improve over time.",
-    avatar: "https://images.pexels.com/photos/415829/pexels-photo-415829.jpeg?w=150"
-  }
-];
-
 const stats = [
   { number: "10,000+", label: "Active Readers" },
   { number: "50,000+", label: "Books Analyzed" },
@@ -68,6 +49,7 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-gradient-to-br from-blue-50 via-white to-purple-50">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
         <div className="relative max-w-7xl mx-auto px-4 py-20 lg:py-32">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <motion.div
@@ -217,7 +199,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
+      {/* How It Works Section */}
       <section className="py-20 bg-white">
         <div className="max-w-7xl mx-auto px-4">
           <motion.div
@@ -226,36 +208,40 @@ export default function Home() {
             transition={{ duration: 0.8 }}
             className="text-center mb-16"
           >
-            <h2 className="text-4xl font-bold text-gray-900 mb-4">What Our Users Say</h2>
-            <p className="text-xl text-gray-600">Join thousands of learners who have transformed their reading experience</p>
+            <h2 className="text-4xl font-bold text-gray-900 mb-4">How ARN.IO Works</h2>
+            <p className="text-xl text-gray-600">Simple steps to transform your learning experience</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
+            {[
+              {
+                step: "01",
+                title: "Upload Your Documents",
+                description: "Simply upload your PDFs, documents, or books to get started with intelligent analysis."
+              },
+              {
+                step: "02", 
+                title: "AI Analyzes Your Reading",
+                description: "Our advanced AI monitors your reading patterns, speed, and comprehension in real-time."
+              },
+              {
+                step: "03",
+                title: "Get Personalized Insights",
+                description: "Receive tailored recommendations, progress reports, and strategies to improve your learning."
+              }
+            ].map((item, index) => (
               <motion.div
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                className="bg-gray-50 p-6 rounded-2xl"
+                transition={{ duration: 0.6, delay: index * 0.2 }}
+                className="text-center"
               >
-                <div className="flex items-center space-x-1 mb-4">
-                  {[...Array(5)].map((_, i) => (
-                    <Star key={i} className="w-4 h-4 text-yellow-400 fill-current" />
-                  ))}
+                <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xl font-bold mx-auto mb-6">
+                  {item.step}
                 </div>
-                <p className="text-gray-700 mb-6 italic">"{testimonial.content}"</p>
-                <div className="flex items-center space-x-3">
-                  <img
-                    src={testimonial.avatar}
-                    alt={testimonial.name}
-                    className="w-10 h-10 rounded-full object-cover"
-                  />
-                  <div>
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-gray-600 text-sm">{testimonial.role}</p>
-                  </div>
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">{item.title}</h3>
+                <p className="text-gray-600">{item.description}</p>
               </motion.div>
             ))}
           </div>
