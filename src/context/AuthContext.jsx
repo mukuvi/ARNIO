@@ -17,27 +17,43 @@ export const AuthProvider = ({ children }) => {
   useEffect(() => {
     const userData = localStorage.getItem('userData');
     if (userData) {
-      setUser(JSON.parse(userData));
+      try {
+        setUser(JSON.parse(userData));
+      } catch (error) {
+        localStorage.removeItem('userData');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (userData) => {
-    const userWithDefaults = {
-      ...userData,
-      subscription: userData.subscription || 'basic',
-      documentsUploaded: userData.documentsUploaded || 0,
-      readingStreak: userData.readingStreak || 0,
-      totalReadingTime: userData.totalReadingTime || 0,
-      preferences: userData.preferences || {
-        theme: 'light',
+  const login = async (email, password, name) => {
+    setLoading(true);
+    
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const userData = {
+      id: Date.now().toString(),
+      name: name || email.split('@')[0],
+      email,
+      profilePic: "https://images.pexels.com/photos/220453/pexels-photo-220453.jpeg?w=150",
+      subscription: 'free',
+      usage: {
+        documentsUploaded: 0,
+        readingTime: 0,
+        completedBooks: 0
+      },
+      settings: {
         notifications: true,
-        autoPlay: false,
-        fontSize: 'medium'
-      }
+        darkMode: false,
+        language: 'en'
+      },
+      joinDate: new Date().toISOString()
     };
-    setUser(userWithDefaults);
-    localStorage.setItem('userData', JSON.stringify(userWithDefaults));
+    
+    setUser(userData);
+    localStorage.setItem('userData', JSON.stringify(userData));
+    setLoading(false);
   };
 
   const logout = () => {
@@ -54,7 +70,6 @@ export const AuthProvider = ({ children }) => {
   const deleteAccount = () => {
     setUser(null);
     localStorage.removeItem('userData');
-    // In a real app, this would make an API call to delete the account
   };
 
   const value = {
@@ -63,7 +78,8 @@ export const AuthProvider = ({ children }) => {
     logout,
     updateUser,
     deleteAccount,
-    loading
+    loading,
+    isAuthenticated: !!user
   };
 
   return (

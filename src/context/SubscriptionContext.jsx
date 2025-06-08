@@ -102,11 +102,6 @@ export const SubscriptionProvider = ({ children }) => {
     return subscriptionPlans[user?.subscription || 'free'];
   };
 
-  const canUpgrade = (feature) => {
-    const currentPlan = getCurrentPlan();
-    return currentPlan.limits[feature];
-  };
-
   const upgradeSubscription = async (planName) => {
     try {
       setLoading(true);
@@ -149,7 +144,6 @@ export const SubscriptionProvider = ({ children }) => {
     currentPlan: getCurrentPlan(),
     plans: subscriptionPlans,
     loading,
-    canUpgrade,
     upgradeSubscription,
     cancelSubscription
   };

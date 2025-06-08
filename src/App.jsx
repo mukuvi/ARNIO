@@ -5,14 +5,14 @@ import { SubscriptionProvider } from './context/SubscriptionContext';
 import { DocumentProvider } from './context/DocumentContext';
 import Layout from './components/Layout/Layout';
 import ProtectedRoute from './components/ProtectedRoute';
-import Home from './Pages/Home';
-import Authenticate from './Pages/Authenticate';
-import Dashboard from './Pages/Dashboard';
-import Settings from './Pages/Settings';
-import Pro from './Pages/Pro';
-import API from './Pages/API';
-import { NotFound } from './Pages/NotFound';
-import './App.css';
+import Home from './pages/Home';
+import Authenticate from './pages/Authenticate';
+import Dashboard from './pages/Dashboard';
+import Settings from './pages/Settings';
+import Pro from './pages/Pro';
+import API from './pages/API';
+import { NotFound } from './pages/NotFound';
+import { Toaster } from 'react-hot-toast';
 
 function App() {
   return (
@@ -44,6 +44,16 @@ function App() {
               <Route path="*" element={<NotFound />} />
             </Route>
           </Routes>
+          <Toaster 
+            position="top-right"
+            toastOptions={{
+              duration: 4000,
+              style: {
+                background: '#363636',
+                color: '#fff',
+              },
+            }}
+          />
         </DocumentProvider>
       </SubscriptionProvider>
     </AuthProvider>

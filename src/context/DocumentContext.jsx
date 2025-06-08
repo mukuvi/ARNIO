@@ -64,7 +64,7 @@ export const DocumentProvider = ({ children }) => {
         uploadDate: new Date().toISOString(),
         readingProgress: 0,
         lastRead: null,
-        totalPages: Math.floor(Math.random() * 200) + 50, // Simulate page count
+        totalPages: Math.floor(Math.random() * 200) + 50,
         currentPage: 1
       };
 
@@ -114,21 +114,6 @@ export const DocumentProvider = ({ children }) => {
     }
   };
 
-  const updateReadingProgress = (documentId, progress, currentPage) => {
-    const updatedDocs = documents.map(doc => {
-      if (doc.id === documentId) {
-        return {
-          ...doc,
-          readingProgress: progress,
-          currentPage,
-          lastRead: new Date().toISOString()
-        };
-      }
-      return doc;
-    });
-    saveDocuments(updatedDocs);
-  };
-
   const getStorageUsed = () => {
     return documents.reduce((total, doc) => total + doc.size, 0);
   };
@@ -138,7 +123,6 @@ export const DocumentProvider = ({ children }) => {
     loading,
     uploadDocument,
     deleteDocument,
-    updateReadingProgress,
     getStorageUsed,
     storageLimit: currentPlan.limits.storage
   };
